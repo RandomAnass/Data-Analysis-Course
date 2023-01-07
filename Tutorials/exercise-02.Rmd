@@ -1,0 +1,58 @@
+---
+title: "exercise-02"
+author: "Anass"
+date: "2022-12-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+
+
+library(data.table)
+library(magrittr)
+
+data_folder_name <- "extdata"
+users_dt <- fread(file.path("extdata","BX-Users.csv"))
+books_dt <- fread(file.path("extdata","BX-Books.csv"))
+ratings_dt <- fread(file.path("extdata", "BX-Book-Ratings.csv"))
+
+class(users_dt)
+class(books_dt)
+names(ratings_dt)
+sapply(users_dt,class)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+library(readxl)
+library(dplyr)
+oly_file <- file.path("extdata","summer_olympic_medals.xlsx")
+oly_df <- read_xlsx("extdata/summer_olympic_medals.xlsx")
+oly_df <- read_xlsx(oly_file, sheet='ALL MEDALISTS')
+nation_medal_df <- read_excel(oly_file, sheet='COUNTRY TOTALS', range="A147:F286")
+nation_medal_dt <- as.data.table(nation_medal_df)
+head(nation_medal_dt)
+
+nation_medal_dt[!is.na(Country)][`Grand Total`==max(`Grand Total`)]
+
+nation_medal_df %>% mutate(ratio = Silver/`Grand Total`) %>% arrange(-ratio) 
+
+nation_medal_df %>% mutate(ratio = Silver/`Grand Total`) %>% arrange(-ratio) %>% group_by(Country,ratio) %>% filter(ratio == max(ratio))
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

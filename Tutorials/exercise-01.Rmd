@@ -1,0 +1,23 @@
+```{r}
+#install.packages("dslabs")
+library(dslabs)
+```
+```{r}
+ sequence <- seq(2,8)
+ ccc = c()
+ for(x in sequence){ccc[x] = sum(1/(seq(1,10^x)^2))}
+ sequence <- seq(2,8)
+ ccc = c()
+ for(x in sequence){ccc[x-1] = sum(1/(seq(1,10^x)^2))}
+ plot(sequence,ccc-(pi^2)/6)
+```
+```{r}
+data("murders")
+pop <- murders$population
+pop <- sort(pop)
+print(paste0(pop[1],",",min(murders$population)))
+
+pop <- murders$population
+pop_order  <-  order(pop)
+```
+
