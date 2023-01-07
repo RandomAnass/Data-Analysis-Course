@@ -1,0 +1,68 @@
+---
+title: "The importance of data visualization"
+author: "Anass"
+date: "2023-01-07"
+output:
+  prettydoc::html_pretty:
+    theme: tactile
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+```
+
+## Anscombe’s quartet
+
+### Data
+```{r}
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(DT)
+anscombe %>% datatable()
+# tidying
+anscombe_reshaped <- anscombe %>% mutate(ID = row_number())  %>% pivot_longer(cols =1:8 ) %>% separate(name,sep = "(?<=[a-z])(?=[0-9])",into= c("xy","typen"))  %>% pivot_wider(names_from = "xy",values_from = "value")
+anscombe_reshaped %>% datatable()
+
+dim(anscombe)
+dim(anscombe_reshaped)
+# library(data.table)
+# anscombe_reshaped_2 <- anscombe %>%
+# as.data.table() %>%
+#  .[, ID := seq(nrow(.))] %>%
+# melt(id.var=c("ID")) %>%
+# separate(variable, c('xy', "group"), sep=1) %>%
+# dcast(... ~ xy) %>%
+#  mutate(group = paste0("dataset_", group))
+
+```
+### Descriptive stats
+```{r}
+
+
+anscombe_reshaped %>% group_by(typen) %>% summarise(x_mean = mean(x),
+y_mean = mean(y),
+x_sd = sd(x),
+y_sd = sd(y),
+cor_pearson = cor(x,y)) %>% datatable()
+cor(anscombe_reshaped$x,anscombe_reshaped$y) 
+
+```
+### Boxplots
+```{r}
+anscombe_reshaped %>% ggplot(aes(typen,x))+geom_boxplot() 
+anscombe_reshaped %>% ggplot(aes(typen,y))+geom_boxplot() 
+```
+
+### Data plot
+
+```{r}
+anscombe_reshaped %>% ggplot(aes(x,y,color=typen)) + geom_point()
+anscombe_reshaped %>% ggplot(aes(x,y)) + geom_point() + facet_wrap(~ typen)
+
+```
+
+
+It’s  important to plot the raw data. Different distributions can have the same mean and sd.
