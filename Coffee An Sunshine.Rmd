@@ -1,0 +1,99 @@
+---
+title: "Coffee And Sunshine"
+author: "Anass"
+date: "2023-01-08"
+output:
+  prettydoc::html_pretty:
+    theme: leonids 
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+```
+
+
+
+## Data
+* The source of the coffee consumption data: [http://chartsbin.com/view/581 ](Coffee consumption, World Resources Institute)    
+* The source of the sunshine duration data: [https://en.wikipedia.org/wiki/List_of_cities_by_sunshine_duration]() 
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(DT)
+#install.packages("rvest")
+library(rvest)
+
+url <- "http://chartsbin.com/view/581"
+
+coffee_dt = url %>% read_html() %>%  html_nodes(".yui-g") %>% html_table( fill = TRUE) %>% bind_rows()
+
+# Raw data 
+coffee_dt %>% datatable()
+```
+
+
+```{r}
+
+
+
+url <- "https://en.wikipedia.org/wiki/List_of_cities_by_sunshine_duration"
+
+sunshine_dt = url %>% read_html() %>%  html_nodes(".wikitable") %>% html_table( fill = TRUE) %>% bind_rows()
+
+# Raw data
+sunshine_dt %>% datatable()
+```
+```{r}
+#install.packages("janitor")
+#coffee
+library(janitor) 
+coffee_dt <- coffee_dt %>% clean_names() %>% transmute(country,kg_per_person = latest_available_kg_per_person_per_year) %>% filter(kg_per_person>0)
+
+sunshine_dt <- sunshine_dt  %>% clean_names() %>% select(country ,city,year) %>% mutate(country= as.factor(country), year = as.numeric(sub(",", "", year, fixed = TRUE))) %>% group_by(country) %>% summarise(sunshine_year = mean(year), n_cities = n())
+
+
+merged_dt <-  merge(coffee_dt,sunshine_dt)
+# useful data
+merged_dt %>% datatable()
+# correlation
+cor(merged_dt$sunshine_year,merged_dt$kg_per_person)
+```
+
+## Plots
+
+```{r}
+library(ggrepel)
+ggplot(merged_dt, aes(kg_per_person, sunshine_year)) + geom_point() + geom_text_repel(aes(label=country)) 
+
+#log for a stretch
+ggplot(merged_dt, aes(kg_per_person, sunshine_year)) + geom_point() + scale_x_log10() + scale_y_log10() + geom_text_repel(aes(label=country)) 
+
+ggplot(merged_dt, aes(kg_per_person, sunshine_year)) + geom_point() + geom_smooth()
+ggplot(merged_dt, aes(kg_per_person, sunshine_year)) + geom_point() + geom_smooth(method = lm)
+#ggplot(merged_dt, aes(kg_per_person, sunshine_year)) + geom_point() + scale_x_log10() + scale_y_log10() + geom_smooth()
+```
+
+## Map (to correct)
+
+```{r}
+#install.packages("rworldmap")
+library(rworldmap)
+map_dt <- map_data("world", region = merged_dt$country) 
+
+map_dt <- merge( map_dt  , merged_dt, by.x = "region", by.y ="country", all.x = TRUE)
+
+ggplot(map_dt, aes(x = long, y = lat,group=group)) +
+  geom_polygon(aes(fill = kg_per_person ), color = "white") +
+  scale_fill_viridis_c(direction = -1,option = "A") +
+  labs(#x = "Petal Length", y = "Petal Width",
+title = "Map so bad it makes me wanna through up") 
+
+
+
+```
+
+
