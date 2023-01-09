@@ -4,11 +4,12 @@ author: "Anass"
 date: "2023-01-08"
 output:
   prettydoc::html_pretty:
-    theme: leonids 
+    theme: cayman 
     highlight: github
 ---
 
 ```{r setup, include=FALSE}
+#     theme: leonids 
 knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
 ```
 
