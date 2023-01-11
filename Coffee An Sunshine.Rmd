@@ -76,8 +76,36 @@ ggplot(merged_dt, aes(kg_per_person, sunshine_year)) + geom_point() + scale_x_lo
 ggplot(merged_dt, aes(kg_per_person, sunshine_year)) + geom_point() + geom_smooth()
 ggplot(merged_dt, aes(kg_per_person, sunshine_year)) + geom_point() + geom_smooth(method = lm)
 #ggplot(merged_dt, aes(kg_per_person, sunshine_year)) + geom_point() + scale_x_log10() + scale_y_log10() + geom_smooth()
+
 ```
 
+## Correlation change
+
+
+```{r}
+cor_x <- c()
+
+for(x in sort(unique(merged_dt$kg_per_person))){
+  merged_dt_x <- merged_dt %>% filter(kg_per_person>x)
+  cor_x <- append(cor_x,cor(merged_dt_x$kg_per_person,merged_dt_x$sunshine_year))
+
+}
+plot(sort(unique(merged_dt$kg_per_person))[1:35],cor_x[1:35])
+# Moving Correlation / Rolling Correlation 
+#install.packages("zoo")
+library(zoo)
+plot(rollapply(merged_dt[order(merged_dt$kg_per_person),][,c(2,3)], width=10, function(x) cor(x[,1],x[,2]), by.column=FALSE))
+
+```
+```{r}
+cor.test(merged_dt$kg_per_person,merged_dt$sunshine_year)
+# LINEAR REGRESSION
+linear_model = lm( kg_per_person~sunshine_year, merged_dt) 
+summary(linear_model)
+```
+
+
+[https://fooledbyrandomness.com/blog/index.php/2021/11/24/detecting-bs-in-correlation-windows/]() 
 ## Map (to correct)
 
 ```{r}
