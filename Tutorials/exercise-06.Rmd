@@ -1,0 +1,100 @@
+---
+title: "exercise-06"
+author: "Anass"
+date: "2023-01-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tutorial
+
+```{r cars}
+library(ggplot2)
+library(data.table)
+library(magrittr) # Needed for %>% operator
+library(tidyr)
+```
+
+
+
+```{r pressure, echo=FALSE}
+coffee_dt <- fread("./extdata/coffee_sim.csv")
+coffee_dt
+summary(coffee_dt)
+#coffee_dt %>% mutate(coffee_cups_per_day = as.factor(coffee_cups_per_day))
+ggplot(coffee_dt,aes(coffee_cups_per_day,datavizitis_risk))+geom_boxplot()
+unique(coffee_dt$packs_cigarettes_per_day)
+ggplot(coffee_dt,aes(coffee_cups_per_day,datavizitis_risk))+geom_boxplot()+facet_wrap(~packs_cigarettes_per_day)
+ggplot(coffee_dt,aes(coffee_cups_per_day,datavizitis_risk))+geom_boxplot()+facet_wrap(~packs_cigarettes_per_day)
+
+ggplot(coffee_dt,aes(coffee_cups_per_day,packs_cigarettes_per_day, fill = coffee_cups_per_day))+geom_col()
+
+library(dplyr)
+coffee_scatter <- coffee_dt %>% group_by(packs_cigarettes_per_day,coffee_cups_per_day) %>%  summarise(n = n(),risk=mean(datavizitis_risk))
+
+ggplot(coffee_scatter,aes(packs_cigarettes_per_day,coffee_cups_per_day,size=n,color=risk)) + geom_point()
+ggplot(coffee_scatter,aes(packs_cigarettes_per_day,coffee_cups_per_day,size=risk ,color=n)) + geom_point()
+```
+## Smoking
+
+```{r}
+datavizitis_smoking_dt <- fread("./extdata/datavizitis_smoking.csv")
+datavizitis_smoking_dt
+```
+```{r}
+
+summary_dt <- datavizitis_smoking_dt %>% filter(hospitalized == 'Yes' ) %>% select(-hospitalized) %>% mutate(cigarettes_per_day = as.factor(cigarettes_per_day)) %>% group_by(cigarettes_per_day) %>% summarise(datavizitis_severity = mean(datavizitis_severity))
+
+ggplot(summary_dt,aes(cigarettes_per_day,datavizitis_severity, group = 1)) + geom_line() #+ geom_smooth() 
+
+# datavizitis_smoking_dt[hospitalized=="Yes"]
+ggplot(datavizitis_smoking_dt %>% filter(hospitalized == 'Yes' ) %>% select(-hospitalized),aes(cigarettes_per_day,datavizitis_severity)) + geom_point() + geom_smooth(method="lm")
+
+
+ggplot(datavizitis_smoking_dt,aes(cigarettes_per_day,datavizitis_severity,fill = factor(hospitalized))) + geom_point(aes(color=hospitalized)) + geom_smooth(method="lm")
+
+geom_smooth(method="lm", aes(color=hospitalized))
+
+ggplot(datavizitis_smoking_dt,aes(cigarettes_per_day,datavizitis_severity)) + geom_point(aes(color=hospitalized)) + geom_smooth(method="lm",aes(color=hospitalized))
+```
+
+```{r}
+titanic <- fread("./extdata/titanic.csv")
+titanic
+summary(titanic)
+ggplot(titanic[,c("age", "survived")],aes(factor(survived),age)) + geom_boxplot()
+
+
+ggplot(titanic[,c("age", "survived")],aes(factor(survived),age)) + geom_boxplot()
+
+ggplot(titanic[,c("pclass", "survived")] %>% group_by(pclass),aes(factor(survived), fill= factor(pclass))) + geom_bar()
+
+
+
+ggplot(titanic[,c("pclass", "survived")] %>% group_by(pclass,survived) %>% summarise(total = n()) %>%   mutate(pct = prop.table(total)) ,aes(factor(pclass),total, fill=factor(survived), label = scales::percent(pct) )) + geom_col() +geom_text()
+
+ggplot(titanic[,c("pclass", "survived")] %>% group_by(pclass,survived) %>% summarise(total = n()) %>%   mutate(pct = prop.table(total)) ,aes(factor(pclass),total, fill=factor(survived), label = scales::percent(pct) )) + geom_col(position = 'dodge') +
+      geom_text(position = position_dodge(width = .9),    # move to center of bars
+              vjust = -0.5,    # nudge above top of bar
+              size = 3) 
+```
+
+```{r}
+ggplot(titanic, aes(x = factor(pclass), fill = factor(survived))) +
+geom_bar(position = "fill")
+```
+
+```{r}
+ggplot(titanic[,c("age", "pclass")],aes(factor(pclass),age)) + geom_boxplot()
+
+```
+
+```{r}
+ ggplot(titanic, aes(factor(survived), age)) +
+geom_boxplot() +
+facet_wrap(~factor(pclass))
+```
+

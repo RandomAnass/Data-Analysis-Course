@@ -1,0 +1,248 @@
+---
+title: "exercise-05"
+author: "Anass"
+date: "2023-01-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Course
+
+
+```{r cars}
+library(data.table)
+mat <- as.matrix(mtcars[1:10, c("mpg", "carb", "hp", "wt")])
+rownames(mat) <- rownames(mtcars)[1:10]
+colnames(mat) <- c("Miles.per.gallon", "Carburetor", "Horsepower", "Weight")
+head(mat) # A look at the first rows
+
+library(pheatmap) ## pretty heatmap
+pheatmap(mat)
+pheatmap(mat, cluster_rows=FALSE, 
+         cluster_cols=FALSE)
+
+pheatmap(mat, cluster_rows=FALSE, cluster_cols=FALSE, 
+         scale='column')
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+k <- 2
+X <- scale(mat) # use the scaled variables for the clustering 
+clust_km <- kmeans(X, k, nstart = 20)
+clust_km$cluster
+
+row.ann <- data.frame(
+  kmeans = paste0("C",clust_km$cluster) )
+rownames(row.ann) <- rownames(X) 
+o <- order(clust_km$cluster) 
+o
+
+pheatmap(
+  X[o,],        # X with ordered rows according to cluster number  
+  scale='none', # no need to scale, X is scaled
+  annotation_row = row.ann,
+  cluster_rows=FALSE, cluster_cols=FALSE
+  )
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+d <- dist(X)
+hc <- hclust(d)
+plot(hc) 
+plot(hc, hang=1)
+plot(hc, hang=-1) 
+plot(hc, hang=0) 
+```
+```{r}
+clust_hc <- cutree(hc, k=3)
+clust_hc
+
+
+
+# create the row annotation data frame
+row.ann <- data.frame(
+  kmeans = paste0("C",clust_km$cluster),
+  hc = paste0("C",clust_hc)
+  )
+
+# rownames are used to match the matrix rows with the row annotation data frame. 
+# We can now safely reorder the rows of X.
+rownames(row.ann) <- rownames(X) 
+
+pheatmap(
+  X,        
+  scale='none', # no need to scale, X is scaled
+  annotation_row = row.ann,
+  cluster_rows=TRUE, cluster_cols=FALSE
+  )
+```
+
+```{r}
+pca_res <- prcomp(mat, center = TRUE, scale. = TRUE) 
+names(pca_res)
+pca_res
+
+pca_sum <- summary(pca_res)
+pca_sum
+```
+
+```{r}
+plot(pca_res)
+plot(pca_res, type='l')
+```
+
+
+## Exos
+
+```{r}
+library(ggplot2)
+library(data.table)
+library(magrittr) # Needed for %>% operator
+library(tidyr)
+library(GGally)
+library(pheatmap)
+library(mclust)
+
+
+```
+
+###  Correlation analysis and potential pitfalls of correlation analysis
+
+```{r}
+expr <- readRDS("extdata/cancer_data.rds") %>% as.data.table(keep.rownames="tumor_type")
+head(expr[, 1:6])
+```
+
+```{r}
+library(dplyr)
+expr_mat <- expr
+names_vector <- c(expr$tumor_type)
+row.names(expr_mat) <- names_vector
+expr_mat <- expr_mat %>% select(-tumor_type)
+mat <- as.matrix(expr_mat)
+pheatmap(mat, cluster_rows=FALSE, cluster_cols=FALSE, 
+         scale='column')
+```
+```{r}
+#better solution
+
+ggcorr(expr[, -"tumor_type"])
+```
+```{r}
+rownames(expr_mat) <- expr[, tumor_type]
+expr_mat
+```
+```{r}
+expr_mat <- as.matrix(expr[, -"tumor_type"])
+rownames(expr_mat) <- expr[, tumor_type]
+pheatmap(expr_mat, cluster_rows = F, cluster_cols = F)
+expr_mat
+```
+```{r}
+expr_melt <- melt(expr, id.vars='tumor_type')
+expr_melt[order(-value)]
+ggplot(expr, aes(FUK, UGP2)) + geom_point()
+expr[tumor_type == "DOHH2", FUK := NA]
+expr[tumor_type == "DOHH2", UGP2 := NA]
+ggcorr(expr[, !"tumor_type"])
+```
+```{r}
+expr_mat <- as.matrix(expr[, !"tumor_type"])
+rownames(expr_mat) <- expr[, tumor_type]
+pheatmap(expr_mat, cluster_rows = F, cluster_cols = F)
+```
+```{r}
+plot.data <- as.matrix(iris[, -5])
+pheatmap(plot.data,cluster_rows=F, cluster_cols=F, scale='column')
+```
+```{r}
+pheatmap(plot.data,cluster_rows=F, cluster_cols=T, scale='column')
+
+h_complete <- pheatmap(plot.data, show_rownames=F,
+scale='column', clustering_method = "complete", silent=T)
+# silent=T prevents heatmap to be displayed again
+complete <- cutree(h_complete$tree_row, k = 3)
+rownames(plot.data) <- 1:nrow(plot.data)
+## create a data.frame for the row annotations
+row.ann <- data.table(Species = iris$Species)
+row.ann[, complete:=factor(complete)]
+pheatmap(plot.data, annotation_row = row.ann, show_rownames=F,
+scale='column', clustering_method = "complete")
+```
+
+```{r}
+# ggcorr( expr[, -"tumor_type"])
+# pheatmap(as.matrix(expr[, -"tumor_type"]))
+# 
+# rownames(expr_mat) <- expr[, tumor_type]
+# pheatmap(expr_mat, cluster_rows = F, cluster_cols = F)
+# 
+# melt(expr, id.vars = "tumor_type")[order(-value)]
+# ggcorr(expr[, !"tumor_type"])
+dt <- data.table(x = c(8,10,4,5,6,6,3),
+y = c(5,7,6,8,4,9,3),
+letter=c('A','B','C','D','E','X1','X2') )
+X1 <- dt %>% filter(letter=="X1") %>% select(x,y)
+X2 <- dt %>% filter(letter=="X2") %>% select(x,y)
+dt <- dt[-c(6,7),]
+dt_ <- dt %>% mutate(distance_1 = sqrt((x-X1[,1]$x)^2+(y-X1[,2]$y)^2) , distance_2 = sqrt((x-X2[,1]$x)^2+(y-X2[,2]$y)^2)) %>% mutate( closer_to_1 = distance_1 < distance_2 ) 
+dt_ %>% mutate( x1 = sum(closer_to_1*x)/sum(closer_to_1),
+                y1 = sum(closer_to_1*y)/sum(closer_to_1),
+                x2 = sum((!closer_to_1)*x)/sum((!closer_to_1)),
+                y2 = sum((!closer_to_1)*y)/sum((!closer_to_1)))
+
+
+```
+
+
+```{r}
+
+plot.data <- as.matrix(iris[, -5])
+
+
+kmeanss <- kmeans(scale(plot.data),3)
+
+library(fossil)
+
+```
+```{r}
+#install.packages("fossil")
+library(fossil)
+Species <- as.numeric(iris[,5])
+rand.index(complete, kmeanss$cluster)
+rand.index(Species, kmeanss$cluster)
+rand.index(complete, Species)
+
+
+
+```
+
+
+### Dimensionality reduction with PCA
+
+```{r}
+data(iris)
+X <- as.data.table(iris)[Species == "setosa", -"Species"]
+pca <- prcomp(X, center=TRUE, scale.=TRUE)
+pca
+summary(pca)
+proj <- as.data.table(predict(pca))
+ggplot(proj, aes(PC1, PC2)) + geom_point()
+biplot(pca)
+
+```
+
+```{r}
+#install.packages("factoextra")
+library(factoextra)
+fviz_pca_biplot(pca)
+```
+
