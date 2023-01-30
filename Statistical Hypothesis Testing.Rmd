@@ -4,8 +4,7 @@ author: "Anass"
 date: "2023-01-28"
 output:
   prettydoc::html_pretty:
-    theme: lumen
-    toc: yes
+    theme: leonids
     highlight: github
 ---
  
