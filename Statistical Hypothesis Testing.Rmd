@@ -3,9 +3,6 @@ title: "Statistical Hypothesis Testing"
 author: "Anass"
 date: "2023-01-28"
 output:
-  html_document:
-    toc: yes
-    df_print: paged
   prettydoc::html_pretty:
     theme: lumen
     toc: yes
