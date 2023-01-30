@@ -6,3 +6,5 @@ https://randomanass.github.io/Data-Analysis-Course/
 https://randomanass.github.io/Data-Analysis-Course/Graphically-supported-hypotheses.html
 
 https://randomanass.github.io/Data-Analysis-Course/Coffee-An-Sunshine.html
+
+https://randomanass.github.io/Data-Analysis-Course/Statistical-Hypothesis-Testing.html
