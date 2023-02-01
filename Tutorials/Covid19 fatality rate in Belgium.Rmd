@@ -1,0 +1,50 @@
+---
+title: "Covid19 fatality rate in Belgium"
+author: "Anass"
+date: "2023-01-16"
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  prettydoc::html_pretty:
+    theme: architect
+    toc: yes
+    highlight: github
+---
+ 
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+
+Consider the following dataset which contains the fatality rate (percentage of deaths among infected) by COVID 19 of different age groups in Belgium in June 2020. The overall rate (all_ages) suggests that being a female increases the risk of dying from COVID-19 upon infection.
+
+
+```{r}
+library(data.table)
+fatality_dt <- fread('extdata/belgium_infection_fatality_rate_june2020.csv', encoding= "UTF-8")
+fatality_dt
+
+```
+```{r}
+fatality_dt <- melt(fatality_dt,id.vars = "age_group",value.name = "fatality",variable.name = "sex")
+fatality_dt
+library(tidyr)
+library(dplyr)
+fatality_dt %>% summarise(fatality = mean(fatality))
+```
+
+```{r}
+library(ggplot2)
+ggplot(fatality_dt, aes(age_group, fatality, fill=sex)) + geom_col(position="dodge") 
+```
+
+* The fact that there are more older women than men in Belgium and that older people in general are more susceptible to Covid19 death may explain why, contrary to each age group, when considering all ages women have a higher fatality rate.
+* This is an example of a Simpson's paradox - when stratifying by a third
+variable (age) the association (sex vs fatality rate) changes direction
+The possible causal relationships consistent with these associations would be:
+    sex->age (being a woman leads you to live longer and therefore be more represented in higher age groups)
+    age->fatality_rate (being old increases fatality rate)
+    sex->fatality_rate (being a man increases your risk of dying from covid19)
+
+
